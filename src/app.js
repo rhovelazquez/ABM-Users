@@ -1,9 +1,17 @@
-const express = require('express');
+import express from 'express';
 const app = express();
 
-const PORT = 3000;
+
+import routesUsers from './routes/userRoutes.js'
+const PORT = 3030;
 
 app.listen(PORT , () => {
     console.log('Servidor corriendo en el puerto: ' + PORT);
 });
+
+app.use(express.json());
+
+app.use('/user', routesUsers);
+
+
 
