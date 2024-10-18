@@ -33,6 +33,36 @@ export const register=async(req,res)=>{
         return res.status(500).json({ error: error.message });
     }
 }
-export const login=(req,res)=>{
-    res.send('login')
+export const login=async(req,res)=>{
+    const { email, password } = req.body;
+    try {
+        if (!email || !password) {
+            return res.status(400).json({ error: "Email and password are required" });
+        }
+        const userFound = await db.User.findOne({
+            where: { email: email }
+        });
+        
+        if (!userFound) {
+            return res.status(400).json({ error: "User not found" });
+        }
+
+        const isMatch = await bcrypt.compare(password,userFound.password);
+        if (!isMatch) return res.status(400).json({ error: "Incorrect password"})
+        
+
+        const token = await createAccessToken({id:userFound.id});
+        res.cookie('token',token);
+
+        res.json({
+            user: {
+                id: userFound.id, 
+                name: userFound.name,
+                email: userFound.email,
+            }
+        })
+
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
 }
