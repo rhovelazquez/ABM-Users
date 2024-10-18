@@ -1,68 +1,62 @@
-const { check, body, validationResult } = require("express-validator");
-// const users = require('../data/users.json')
-/////////BASE DE DATOS///////////
-const db= require("../database/models")
-const {Op}= require("sequelize");
+import { body, validationResult } from 'express-validator';
+import db from '../database/models/index.js'; 
+import { Op } from 'sequelize';
+
 /* Validaciones */
 const arrayValidaciones = [
     body('name')
         .notEmpty()
-        .withMessage("El campo nombre no debe estar vacio")
-        .isLength({ min: 3 }) 
-        .withMessage("El Nombre debe tener minimo 3 caracteres"),
-    body("phone")
-        .isLength({min :6})
-        .withMessage("El numero de telefono debe tener mas de 3 digitos"),
-    
+        .withMessage("El campo nombre no debe estar vacío")
+        .isLength({ min: 3 })
+        .withMessage("El nombre debe tener mínimo 3 caracteres"),
+        
     body('last_name')
         .notEmpty()
-        .withMessage("El campo apellido no debe estar vacio")
-        .isLength({ min: 3 }) 
-        .withMessage("El Apellido debe tener minimo 3 caracteres"),
+        .withMessage("El campo apellido no debe estar vacío")
+        .isLength({ min: 3 })
+        .withMessage("El apellido debe tener mínimo 3 caracteres"),
         
     body("email")
         .notEmpty()
         .withMessage("El email es obligatorio")
         .isEmail()
         .withMessage("Formato inválido")
-        .custom(async(value, { req }) => {
-            const user = await db.User.findOne({where: {email:req.body.email}})
-    
-          if (user) {
-            return false;
-          }
-          return true;
-        })
-        .withMessage("El email ya se encuentra registrado"),
+        .custom(async (value) => {
+            const user = await db.User.findOne({ where: { email: value } });
+            if (user) {
+                throw new Error("El email ya se encuentra registrado");
+            }
+            return true;
+        }),
 
-    body("password").isLength({
-            min: 6,
-          })
-        .withMessage("Tu constraseña debe tener minimo 6 caracteres")  ,
+    body("password")
+        .notEmpty()
+        .withMessage("La contraseña es obligatoria")
+        .isLength({ min: 6 })
+        .withMessage("Tu contraseña debe tener mínimo 6 caracteres"),
+        
     body('password2')
-            .custom((value,{req}) => {
-                if(value !== req.body.password){
-                    return false
-                }
-                return true
-            }).withMessage('Las contraseñas no coinciden'),
+        .custom((value,{req}) => {
+            if(value !== req.body.password){
+                return false
+            }
+            return true
+        }).withMessage('Las contraseñas no coinciden'),
 ];
 
 const validateCreateForm = (req, res, next) => {
-    console.log(req.body);
     const errors = validationResult(req);
-    console.log(errors.mapped());
     if (errors.isEmpty()) {
         next();
     } else {
-        res.render("Register", {
+        res.status(400).json({ // Cambié a respuesta JSON para API
             errors: errors.mapped(),
-            old:req.body
+            old: req.body,
         });
     }
 };
 
-module.exports = {
+export {
     arrayValidaciones,
     validateCreateForm
 };
