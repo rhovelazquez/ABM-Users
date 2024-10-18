@@ -2,6 +2,7 @@
  //import db from '../database/models/index.js'
  import db from '../database/models/index.js'
 
+ import bcrypt from 'bcryptjs'
 export const getUsers=async (req,res)=>{
     try {
         console.log(Object.keys(db))
@@ -51,8 +52,10 @@ export const updateUser=async(req,res)=>{
             return res.status(404).json({ error: 'Usuario no encontrado' }); // Si no se encuentra, retornar error 404
         }
 
+        const hashedPassword = password ? await bcrypt.hash(password, 10) : user.password;
+        const valEmail= email==user.email ? email : user.email;
         // Actualizar el usuario
-        await user.update({ name, last_name, email, password });
+        await user.update({ name, last_name, email, password:hashedPassword });
         res.json(user); // Retornar el usuario actualizado
     } catch (error) {
         console.error(error);
