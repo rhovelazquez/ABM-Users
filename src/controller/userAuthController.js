@@ -14,7 +14,6 @@ export const register=async(req,res)=>{
         const newUser = await db.User.create({
             ...rest,
             password: hashPass,
-            password2:password2,
         });
 
         const token = await createAccessToken({id:newUser.id});
