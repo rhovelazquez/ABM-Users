@@ -1,6 +1,8 @@
  //import db from '../database/models/index.js'
  import db from '../database/models/index.js'
 import bcrypt from 'bcryptjs'
+import {createAccessToken} from '../libs/jwt.js'
+
 
 export const register=async(req,res)=>{
     try {
@@ -14,14 +16,18 @@ export const register=async(req,res)=>{
             password: hashPass,
             password2:password2,
         });
-        return res.status(201).json({
+
+        const token = await createAccessToken({id:newUser.id});
+        res.cookie('token',token);
+
+        res.json({
             message: "Usuario registrado con éxito",
             user: {
-                id: newUser.id,
-                username: newUser.username,
+                id: newUser.id, 
+                name: newUser.name,
                 email: newUser.email,
             }
-        });
+        })
 
     } catch (error) {
         return res.status(500).json({ error: error.message });
